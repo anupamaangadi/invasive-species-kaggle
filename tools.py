@@ -23,23 +23,23 @@ def load_labels(path):
     return dict(zip(np.array(labels['name']), np.array(labels['invasive'])))
 
 
-def load_images(file_paths, grayscale=True, size=0):
+def next_batch(file_paths, labels, grayscale=True, size=0):
     images = []
 
     if size == 0:
         size = len(file_paths)
     mask = random.sample(range(len(file_paths)), k=size)
     for i in mask:
-        images.append(np.array(cv2.imread(file_paths[i])))
+        images.append(np.array(resize(cv2.imread(file_paths[i]))))
 
     if grayscale:
-        return [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
-    return images
+        images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
+    return normalize(images), np.array(list(labels))[mask]
 
 
 def normalize(images):
     return np.array([image / 255. for image in images])
 
 
-def resize(images, size=(224, 224, 3)):
-    pass
+def resize(image, size=(224, 224)):
+    return cv2.resize(image, size)
