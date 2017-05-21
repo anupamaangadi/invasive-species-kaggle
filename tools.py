@@ -28,13 +28,22 @@ def next_batch(file_paths, labels, grayscale=True, size=0):
 
     if size == 0:
         size = len(file_paths)
+
     mask = random.sample(range(len(file_paths)), k=size)
-    for i in mask:
-        images.append(np.array(resize(cv2.imread(file_paths[i]))))
+    file_paths = np.asarray(file_paths)
+    file_paths = file_paths[mask]
+
+    chosen_labels = []
+    filenames = [int(filename.split('/')[-1].split('.')[-2]) for filename in file_paths]
+    for filename in filenames:
+        chosen_labels.append(labels[filename])
+
+    for file_path in file_paths:
+        images.append(np.array(resize(cv2.imread(file_path))))
 
     if grayscale:
         images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
-    return normalize(images), np.array(list(labels))[mask]
+    return normalize(images), np.array(chosen_labels)
 
 
 def normalize(images):

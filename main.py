@@ -10,7 +10,7 @@ if __name__ == '__main__':
     # print(id)
     # print(invasive)
     image_paths = create_paths(TRAIN_PATH)
-    X, y = next_batch(image_paths, grayscale=True, size=20, labels=invasive.values())
+    X, y = next_batch(image_paths, grayscale=True, size=20, labels=invasive)
     # plt.imshow('gray_image', X[0]*255.)
     print(y[0])
     cv2.imshow('gray_image', X[0])
