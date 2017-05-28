@@ -1,11 +1,8 @@
-import cv2
+import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.keras.python.keras.backend import binary_crossentropy
 from tensorflow.contrib.layers import batch_norm
 
-from tools import TRAIN_PATH, create_paths, load_labels, LABELS_PATH, normalize, resize, next_batch
-from PIL import Image
-import matplotlib.pyplot as plt
+from tools import TRAIN_PATH, create_paths, load_labels, LABELS_PATH, next_batch, load_all_images
 
 
 def weight_variable(shape):
@@ -16,14 +13,6 @@ def weight_variable(shape):
 def bias_variable(shape):
     initial = tf.constant(.1, shape=shape)
     return tf.Variable(initial)
-
-
-def conv2d(x, W, strides):
-    return tf.nn.conv2d(x, W, strides=strides, padding='SAME')
-
-
-def max_pool_2x2(x):
-    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 
 if __name__ == '__main__':
@@ -188,15 +177,28 @@ if __name__ == '__main__':
 
     cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_conv, labels=y_)
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-    # correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
-    accuracy = tf.reduce_mean(tf.cast(cross_entropy, tf.float32))
+    # loss = tf.reduce_mean(tf.cast(cross_entropy, tf.float32))
+    accuracy = tf.reduce_mean(tf.abs(tf.subtract(y_conv, y_)))
+
     sess.run(tf.global_variables_initializer())
+    all_images = load_all_images(image_paths)
+    labels_raw = np.asarray(list(invasive.values()))
+
+    train_images = all_images[:2250]
+    train_labels = labels_raw[:2250]
+    valid_images = all_images[2250:]
+    valid_labels = labels_raw[2250:]
+
+    X_valid, y_valid = next_batch(valid_images, labels=valid_labels, size=len(valid_images))
+
     for i in range(20000):
-        X, y = next_batch(image_paths, grayscale=False, size=20, labels=invasive)
+        X_train, y_train = next_batch(train_images, grayscale=False, size=20, labels=train_labels)
+        sess.run(train_step, feed_dict={x: X_train, y_: y_train, is_training: True})
         if i % 100 == 0:
-            train_accuracy = sess.run(accuracy, feed_dict={x: X, y_: y, is_training: True})
-            print(f'Step {i}, training accuracy: {train_accuracy}')
-            # train_step.run(feed_dict={x: X, y_: y, keep_prob: .5})
+            valid_accuracy = sess.run(accuracy, feed_dict={x: X_valid,
+                                                           y_: y_valid,
+                                                           is_training: False})
+            print(f'Step {i}, valid accuracy: {100 - valid_accuracy * 100}%')
             # print(f'Test accuracy {accuracy.eval(feed_dict={x: X, y:})}')
 
             # plt.imshow('gray_image', X[0]*255.)

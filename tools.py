@@ -6,7 +6,8 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 
-PATH = '/media/hdd/training_data/invasive-species/'
+# PATH = '/media/hdd/training_data/invasive-species/'
+PATH = '/home/kamil/Dokumenty/invasive-species/'
 TRAIN_PATH = os.path.join(PATH, 'train')
 TEST_PATH = os.path.join(PATH, 'test')
 LABELS_PATH = os.path.join(PATH, 'train_labels.csv')
@@ -23,31 +24,17 @@ def load_labels(path):
     return dict(zip(np.array(labels['name']), np.array(labels['invasive'])))
 
 
-def next_batch(file_paths, labels, grayscale=True, size=0):
-    images = []
+def load_all_images(file_paths):
+    return np.asarray([normalize(resize(cv2.imread(file_path))) for file_path in file_paths])
 
-    if size == 0:
-        size = len(file_paths)
 
-    mask = random.sample(range(len(file_paths)), k=size)
-    file_paths = np.asarray(file_paths)
-    file_paths = file_paths[mask]
-
-    chosen_labels = []
-    filenames = [int(filename.split('/')[-1].split('.')[-2]) for filename in file_paths]
-    for filename in filenames:
-        chosen_labels.append(labels[filename])
-
-    for file_path in file_paths:
-        images.append(np.array(resize(cv2.imread(file_path))))
-
-    if grayscale:
-        images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
-    return normalize(images), np.array(chosen_labels)
+def next_batch(images, labels, grayscale=True, size=20):
+    mask = random.sample(range(len(images)), k=size)
+    return images[mask], labels[mask]
 
 
 def normalize(images):
-    return np.array([image / 255. for image in images])
+    return np.asarray([image / 255. for image in images])
 
 
 def resize(image, size=(224, 224)):
