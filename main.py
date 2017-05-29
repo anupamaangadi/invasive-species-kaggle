@@ -1,8 +1,12 @@
+import os
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
 
 from tools import TRAIN_PATH, create_paths, load_labels, LABELS_PATH, next_batch, load_all_images
+
+SAVE_PATH = '/media/hdd/saved-models/invasive-species/'
 
 
 def weight_variable(shape):
@@ -16,10 +20,7 @@ def bias_variable(shape):
 
 
 if __name__ == '__main__':
-    # print(create_paths(TRAIN_PATH))
     invasive = load_labels(LABELS_PATH)
-    # print(id)
-    # print(invasive)
     image_paths = create_paths(TRAIN_PATH)
 
     sess = tf.Session()
@@ -165,7 +166,6 @@ if __name__ == '__main__':
     bn27 = batch_norm(conv27_pw, is_training=is_training)
     relu27 = tf.nn.relu(bn27)
 
-    # W_pool28 = weight_variable([1, 7, 7, 1])
     avg_pool28 = tf.nn.avg_pool(relu27, [1, 7, 7, 1], strides=[1, 1, 1, 1], padding='VALID')
     bn28 = batch_norm(avg_pool28, is_training=is_training)
     relu28 = tf.nn.relu(bn28)
@@ -176,9 +176,8 @@ if __name__ == '__main__':
     y_conv = tf.reshape(tf.matmul(fc29, W_fc29), shape=[-1])
 
     cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_conv, labels=y_)
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-    # loss = tf.reduce_mean(tf.cast(cross_entropy, tf.float32))
-    accuracy = tf.reduce_mean(tf.abs(tf.subtract(y_conv, y_)))
+    train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
+    accuracy = tf.subtract(1., tf.reduce_mean(tf.abs(tf.subtract(tf.nn.sigmoid(y_conv), y_))))
 
     sess.run(tf.global_variables_initializer())
     all_images = load_all_images(image_paths)
@@ -189,20 +188,23 @@ if __name__ == '__main__':
     valid_images = all_images[2250:]
     valid_labels = labels_raw[2250:]
 
+    saver = tf.train.Saver()
+    last_accuracy = 0
+
     X_valid, y_valid = next_batch(valid_images, labels=valid_labels, size=len(valid_images))
 
     for i in range(20000):
         X_train, y_train = next_batch(train_images, grayscale=False, size=20, labels=train_labels)
-        sess.run(train_step, feed_dict={x: X_train, y_: y_train, is_training: True})
         if i % 100 == 0:
+            train_accuracy = sess.run(accuracy, feed_dict={x: X_train,
+                                                           y_: y_train,
+                                                           is_training: False})
             valid_accuracy = sess.run(accuracy, feed_dict={x: X_valid,
                                                            y_: y_valid,
                                                            is_training: False})
-            print(f'Step {i}, valid accuracy: {100 - valid_accuracy * 100}%')
-            # print(f'Test accuracy {accuracy.eval(feed_dict={x: X, y:})}')
-
-            # plt.imshow('gray_image', X[0]*255.)
-            # print(y[0])
-            # cv2.imshow('gray_image', X[0])
-            # cv2.waitKey(0)
-            # plt.show()
+            print(f'Step {i}, train accuracy: {train_accuracy * 100.}%')
+            print(f'Step {i}, valid accuracy: {valid_accuracy * 100.}%')
+            if last_accuracy < valid_accuracy:
+                saver.save(sess, os.path.join(SAVE_PATH, f'model{valid_accuracy}'))
+                last_accuracy = valid_accuracy
+        sess.run(train_step, feed_dict={x: X_train, y_: y_train, is_training: True})
