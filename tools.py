@@ -2,18 +2,18 @@ import os
 import random
 
 import cv2
-import pandas as pd
 import numpy as np
-from PIL import Image
+import pandas as pd
 
 # PATH = '/media/hdd/training_data/invasive-species/'
-from keras.preprocessing.image import img_to_array, load_img
 
 PATH = '/home/kamil/Dokumenty/invasive-species/'
 TRAIN_PATH = os.path.join(PATH, 'train')
 VALID_PATH = os.path.join(PATH, 'validation')
+SAVE_PATH = '/media/hdd/saved-models/invasive-species/'
 TEST_PATH = os.path.join(PATH, 'test')
 LABELS_PATH = os.path.join(PATH, 'train_labels.csv')
+img_width, img_height = 250, 250
 
 
 def create_paths(path):
@@ -28,8 +28,8 @@ def load_labels(path):
 
 
 def load_all_images(file_paths):
-    # images = [load_img(file_path) for file_path in file_paths]
-    return np.asarray([normalize(resize(img_to_array(cv2.imread(file_path)))) for file_path in file_paths])
+    return {file_path.split('/')[-1].split('.')[0]: normalize(resize(cv2.imread(file_path))) for file_path in
+            file_paths}
 
 
 def next_batch(images, labels, grayscale=True, size=20):
@@ -41,5 +41,5 @@ def normalize(images):
     return np.asarray([image / 255. for image in images])
 
 
-def resize(image, size=(150, 150)):
+def resize(image, size=(img_height, img_width)):
     return cv2.resize(image, size)

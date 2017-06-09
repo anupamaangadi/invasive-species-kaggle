@@ -1,32 +1,18 @@
-import os
-
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Conv2D, Activation, MaxPooling2D, Flatten, Dense, Dropout
 from keras.models import Sequential
+from keras.optimizers import RMSprop
 from keras.preprocessing.image import ImageDataGenerator
 
-from tools import TRAIN_PATH, VALID_PATH
+from tools import TRAIN_PATH, VALID_PATH, img_width, img_height
 
-SAVE_PATH = '/media/hdd/saved-models/invasive-species/'
-img_width, img_height = 150, 150
 batch_size = 16
 epochs = 50
 nb_train_samples = 1869
 nb_validation_samples = 426
 
 if __name__ == '__main__':
-    # invasive = load_labels(LABELS_PATH)
-    # image_paths = create_paths(TRAIN_PATH)
-
-    # all_images = load_all_images(image_paths)
-    # labels_raw = np.asarray(list(invasive.values()))
-    #
-    # train_images = all_images[:2250]
-    # train_labels = labels_raw[:2250]
-    # valid_images = all_images[2250:]
-    # valid_labels = labels_raw[2250:]
-
     if K.image_data_format() == 'channels_first':
         input_shape = (3, img_width, img_height)
     else:
@@ -43,40 +29,36 @@ if __name__ == '__main__':
 
     train_generator = train_datagen.flow_from_directory(
         TRAIN_PATH,
-        target_size=(150, 150),
+        target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='binary'
     )
 
     validation_generator = test_datagen.flow_from_directory(
         VALID_PATH,
-        target_size=(150, 150),
+        target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='binary'
     )
 
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape))
+    model.add(Conv2D(32, (7, 7), input_shape=input_shape))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(64, (3, 3)))
+    model.add(Conv2D(64, (5, 5)))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
-    model.add(Dense(64))
+    model.add(Dense(32))
     model.add(Activation('relu'))
-    model.add(Dropout(.5))
+    model.add(Dropout(.2))
     model.add(Dense(1))
     model.add(Activation('sigmoid'))
 
     model.compile(loss='binary_crossentropy',
-                  optimizer='rmsprop',
+                  optimizer=RMSprop(decay=0.001),
                   metrics=['accuracy'])
 
     model.fit_generator(
