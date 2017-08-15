@@ -5,15 +5,15 @@ import cv2
 import numpy as np
 import pandas as pd
 
-# PATH = '/media/hdd/training_data/invasive-species/'
+PATH = '/media/hdd/training_data/invasive-species/'
 
-PATH = '/home/kamil/Dokumenty/invasive-species/'
+# PATH = '/home/kamil/Dokumenty/invasive-species/'
 TRAIN_PATH = os.path.join(PATH, 'train')
 VALID_PATH = os.path.join(PATH, 'validation')
-SAVE_PATH = '/media/hdd/saved-models/invasive-species/'
+SAVE_PATH = '/media/hdd/saved-models/invasive-species'
 TEST_PATH = os.path.join(PATH, 'test')
 LABELS_PATH = os.path.join(PATH, 'train_labels.csv')
-img_width, img_height = 250, 250
+img_width, img_height = 224, 224
 
 
 def create_paths(path):
@@ -28,7 +28,8 @@ def load_labels(path):
 
 
 def load_all_images(file_paths):
-    return {file_path.split('/')[-1].split('.')[0]: normalize(resize(cv2.imread(file_path))) for file_path in
+    return {file_path.split('/')[-1].split('.')[0]: normalize(
+        resize(cv2.imread(file_path))) for file_path in
             file_paths}
 
 

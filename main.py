@@ -1,16 +1,19 @@
+import os
+
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint
-from keras.layers import Conv2D, Activation, MaxPooling2D, Flatten, Dense, Dropout
+from keras.layers import Conv2D, Activation, MaxPooling2D, Flatten, Dense, \
+    Dropout
 from keras.models import Sequential
 from keras.optimizers import RMSprop
 from keras.preprocessing.image import ImageDataGenerator
 
-from tools import TRAIN_PATH, VALID_PATH, img_width, img_height
+from tools import TRAIN_PATH, VALID_PATH, img_width, img_height, SAVE_PATH
 
 batch_size = 16
 epochs = 50
-nb_train_samples = 1869
-nb_validation_samples = 426
+nb_train_samples = 1837
+nb_validation_samples = 458
 
 if __name__ == '__main__':
     if K.image_data_format() == 'channels_first':
@@ -58,15 +61,16 @@ if __name__ == '__main__':
     model.add(Activation('sigmoid'))
 
     model.compile(loss='binary_crossentropy',
-                  optimizer=RMSprop(decay=0.001),
+                  optimizer=RMSprop(),
                   metrics=['accuracy'])
 
     model.fit_generator(
         train_generator,
         steps_per_epoch=nb_train_samples // batch_size,
-        epochs=50,
+        epochs=20,
         validation_data=validation_generator,
         validation_steps=nb_validation_samples // batch_size,
         callbacks=[ModelCheckpoint(
-            filepath='/media/hdd/saved-models/invasive-species/checkpoint-{epoch:02d}-{val_loss:.2f}.hdf5',
+            filepath=os.path.join(SAVE_PATH,
+                                  'checkpoint-{epoch:02d}-{val_loss:.2f}.hdf5'),
             save_best_only=True)])
