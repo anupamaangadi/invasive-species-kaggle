@@ -1,9 +1,10 @@
 # kaggle-invasive-species
-<h2>Kaggle's competition: Invasive Species Monitoring<h2>
-<h3>Identification of images of invasive hydrangea</h3>
+## Kaggle's competition: Invasive Species Monitoring<h2>
+### Identification of images of invasive hydrangea</h3>
 
 ## Non-invasive Example
 <img src='./img/noninvasive.jpg' />
+
 ## Invasive Example
 <img src='./img/invasive.jpg' />
 
