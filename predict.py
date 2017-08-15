@@ -12,7 +12,7 @@ if __name__ == '__main__':
     images = np.asarray(list(images_dict.values()))
     ids = np.asarray(list(images_dict.keys()))
     print(len(images))
-    model = load_model(os.path.join(SAVE_PATH, 'checkpoint-39-0.18.hdf5'))
+    model = load_model(os.path.join(SAVE_PATH, 'checkpoint-72-0.14.hdf5'))
     predictions = model.predict(images)
     predictions = predictions.flatten()
 
