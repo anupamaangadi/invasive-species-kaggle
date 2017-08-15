@@ -30,7 +30,7 @@ def load_labels(path):
 def load_all_images(file_paths):
     return {file_path.split('/')[-1].split('.')[0]: normalize(
         resize(cv2.imread(file_path))) for file_path in
-            file_paths}
+        file_paths}
 
 
 def next_batch(images, labels, grayscale=True, size=20):
